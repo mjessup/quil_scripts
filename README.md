@@ -18,7 +18,7 @@ This repository contains various scripts and configuration files for managing an
 Clone this repository and run the `setup.sh` script on your new server:
 
 ```bash
-cd /root/scripts && git pull https://github.com/mjessup/quil_scripts.git && bash setup.sh
+curl -s https://raw.githubusercontent.com/mjessup/quil_scripts/main/setup.sh | bash
 ```
 
 This script will:
