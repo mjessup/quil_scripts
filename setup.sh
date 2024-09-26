@@ -35,6 +35,16 @@ for file in "${FILES[@]}"; do
     fi
 done
 
+# Set executable permissions for scripts
+echo -e "${HOURGLASS} ${YELLOW}Setting executable permissions for scripts...${NC}"
+chmod +x "$SCRIPTS_DIR/setup.sh" "$SCRIPTS_DIR/Q_backup.sh" "$SCRIPTS_DIR/change_hostname.sh" "$SCRIPTS_DIR/setup_custom_nodes.sh" "$SCRIPTS_DIR/stop_node_script.py"
+
+if [ $? -eq 0 ]; then
+    echo -e "${CHECK_MARK} ${GREEN}Permissions set successfully.${NC}"
+else
+    echo -e "${ERROR_MARK} ${RED}Failed to set permissions.${NC}"
+fi
+
 # Ensure .storj_env exists (but do not overwrite if it does)
 ENV_FILE="$SCRIPTS_DIR/.storj_env"
 if [ ! -f "$ENV_FILE" ]; then
