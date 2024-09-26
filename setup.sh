@@ -77,17 +77,27 @@ echo -e "${HOURGLASS} ${YELLOW}Checking existing crontab and merging changes...$
 # Capture the existing crontab into a temporary file
 crontab -l > "$EXISTING_CRONTAB" 2>/dev/null
 
-# Loop through each line in the new crontab.txt file
+# Merge the contents of crontab.txt with the existing crontab, preserving comments and empty lines
+MERGED_CRONTAB=$(mktemp)
+
+# Copy the existing crontab (with comments) to the merged file
+cat "$EXISTING_CRONTAB" > "$MERGED_CRONTAB"
+
+# Loop through each line in the new crontab.txt file and append missing lines
 while IFS= read -r new_cron; do
     # Skip empty lines or comments
     if [[ -z "$new_cron" || "$new_cron" =~ ^# ]]; then
+        # Add comments or empty lines to the merged crontab if they aren't duplicates
+        if ! grep -Fxq "$new_cron" "$MERGED_CRONTAB"; then
+            echo "$new_cron" >> "$MERGED_CRONTAB"
+        fi
         continue
     fi
 
     # Check if this new cron entry already exists in the current crontab
-    if ! grep -Fxq "$new_cron" "$EXISTING_CRONTAB"; then
-        # If it doesn't exist, append it to the existing crontab
-        echo "$new_cron" >> "$EXISTING_CRONTAB"
+    if ! grep -Fxq "$new_cron" "$MERGED_CRONTAB"; then
+        # If it doesn't exist, append it to the merged crontab
+        echo "$new_cron" >> "$MERGED_CRONTAB"
         echo -e "${CHECK_MARK} ${GREEN}Added new crontab entry: ${NC}$new_cron"
     else
         echo -e "${CHECK_MARK} ${GREEN}Crontab entry already exists: ${NC}$new_cron"
@@ -95,9 +105,9 @@ while IFS= read -r new_cron; do
 done < "$CRONTAB_FILE"
 
 # Apply the merged crontab
-crontab "$EXISTING_CRONTAB"
-rm "$EXISTING_CRONTAB"
+crontab "$MERGED_CRONTAB"
+rm "$EXISTING_CRONTAB" "$MERGED_CRONTAB"
 
-echo -e "${CHECK_MARK} ${GREEN}Crontab merged and applied successfully.${NC}"
+echo -e "${CHECK_MARK} ${GREEN}Crontab merged and applied successfully, preserving comments.${NC}"
 
 echo -e "${CHECK_MARK} ${GREEN}Quil Scripts setup complete! All scripts and crontab are updated.${NC}"
