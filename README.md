@@ -1,4 +1,3 @@
-```markdown
 # Quil Scripts Repository
 
 This repository contains various scripts and configuration files for managing and deploying crypto nodes across multiple servers. The primary goal of this repo is to provide a simple and automated way to deploy, update, and maintain servers using these scripts.
@@ -16,30 +15,27 @@ This repository contains various scripts and configuration files for managing an
 
 ### 1. Setting Up a New Server
 
-- Clone this repository and run the `setup.sh` script on your new server:
-  
+Clone this repository and run the `setup.sh` script on your new server:
+
 ```bash
-git clone https://github.com/mjessup/quil_scripts.git /root/scripts
-cd /root/scripts
-bash setup.sh
+git clone https://github.com/mjessup/quil_scripts.git /root/scripts && cd /root/scripts && bash setup.sh
 ```
 
-- This script will:
-  - Clone or update the repository.
-  - Ensure the required scripts are placed in `/root/scripts`.
-  - Set up the correct crontab entries from `crontab.txt`.
-  - Create a `.storj_env` file (which you'll need to populate manually with sensitive data such as your satellite address, API key, and passphrase).
+This script will:
+- Clone or update the repository.
+- Ensure the required scripts are placed in `/root/scripts`.
+- Set up the correct crontab entries from `crontab.txt`.
+- Create a `.storj_env` file (which you'll need to populate manually with sensitive data such as your satellite address, API key, and passphrase).
 
 ### 2. Updating an Existing Server
 
-- To update the scripts or crontab on an existing server, simply re-run the `setup.sh` script:
-  
+To update the scripts or crontab on an existing server, simply re-run the `setup.sh` script:
+
 ```bash
-cd /root/scripts
-bash setup.sh
+cd /root/scripts && bash setup.sh
 ```
 
-- This will pull the latest changes from the GitHub repository and apply any updates to your scripts and crontab.
+This will pull the latest changes from the GitHub repository and apply any updates to your scripts and crontab.
 
 ## Managing Sensitive Data
 
@@ -49,9 +45,7 @@ Sensitive data like your StorJ satellite address, API key, and passphrase are st
 - You must manually populate it with your credentials as follows:
 
 ```bash
-SATELLITE_ADDRESS="your-satellite-address"
-API_KEY="your-api-key"
-PASSPHRASE="your-passphrase"
+echo -e "SATELLITE_ADDRESS=\"your-satellite-address\"\nAPI_KEY=\"your-api-key\"\nPASSPHRASE=\"your-passphrase\"" > /root/scripts/.storj_env
 ```
 
 ## Scripts Overview
@@ -67,25 +61,18 @@ PASSPHRASE="your-passphrase"
 
 The crontab entries are stored in `crontab.txt`. Any changes to this file will be applied when you run `setup.sh`. Modify this file directly in the repository to update the cron jobs across all servers.
 
----
-
 ## Troubleshooting
 
 - Ensure `git` is installed on the server. The `setup.sh` script will attempt to install it if it's missing.
 - Always manually edit `.storj_env` on each server to keep sensitive data safe.
-```
 
----
-
-### **Understanding `.gitignore`**
+## Understanding `.gitignore`
 
 A `.gitignore` file is used to tell Git which files or directories should **not** be tracked or committed to the GitHub repository. This is useful for keeping sensitive or system-specific files out of the repository, like environment files or local logs.
 
-In your case, you want to ensure that `.storj_env` is never committed to GitHub because it contains sensitive information (such as API keys and passwords). We’ll add this to the `.gitignore` file.
+Here's how your `.gitignore` file should look:
 
-Here’s how your `.gitignore` file will look:
-
-```bash
+```
 # Ignore the environment file containing sensitive data
 .storj_env
 
@@ -103,4 +90,4 @@ logs/
 
 ### Why This is Important:
 - **Security**: By ignoring `.storj_env`, you prevent sensitive data like API keys from being exposed on GitHub.
-- **Clean Commits**: Avoid cluttering your repository with logs or system-specific files that don’t need to be shared across servers.
+- **Clean Commits**: Avoid cluttering your repository with logs or system-specific files that don't need to be shared across servers.
