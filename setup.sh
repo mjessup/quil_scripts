@@ -35,7 +35,7 @@ for file in "${FILES[@]}"; do
     fi
 done
 
-# Set executable permissions for scripts
+# Set executable permissions for the scripts that require them
 echo -e "${HOURGLASS} ${YELLOW}Setting executable permissions for scripts...${NC}"
 chmod +x "$SCRIPTS_DIR/setup.sh" "$SCRIPTS_DIR/Q_backup.sh" "$SCRIPTS_DIR/change_hostname.sh" "$SCRIPTS_DIR/setup_custom_nodes.sh" "$SCRIPTS_DIR/stop_node_script.py"
 
