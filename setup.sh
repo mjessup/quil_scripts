@@ -77,29 +77,28 @@ echo -e "${HOURGLASS} ${YELLOW}Checking existing crontab and merging changes...$
 # Capture the existing crontab into a temporary file
 crontab -l > "$EXISTING_CRONTAB" 2>/dev/null
 
-# Prevent duplicates by ensuring `set_cpu_performance.sh` is not added twice
-# Remove the duplicate entry (if it exists more than once)
+# Remove any duplicates of the CPU performance cron job in the existing crontab
 awk '!seen[$0]++' "$EXISTING_CRONTAB" > "$EXISTING_CRONTAB.tmp" && mv "$EXISTING_CRONTAB.tmp" "$EXISTING_CRONTAB"
 
 # Merge the contents of crontab.txt with the existing crontab, preserving comments and empty lines
 MERGED_CRONTAB=$(mktemp)
 
-# Copy the existing crontab (with comments) to the merged file
-cat "$EXISTING_CRONTAB" > "$MERGED_CRONTAB"
+# Start with an empty file and merge properly
+> "$MERGED_CRONTAB"
 
 # Loop through each line in the new crontab.txt file and append missing lines
 while IFS= read -r new_cron; do
     # Skip empty lines or comments
     if [[ -z "$new_cron" || "$new_cron" =~ ^# ]]; then
         # Add comments or empty lines to the merged crontab if they aren't duplicates
-        if ! grep -Fxq "$new_cron" "$MERGED_CRONTAB"; then
+        if ! grep -Fxq "$new_cron" "$EXISTING_CRONTAB"; then
             echo "$new_cron" >> "$MERGED_CRONTAB"
         fi
         continue
     fi
 
     # Check if this new cron entry already exists in the current crontab
-    if ! grep -Fxq "$new_cron" "$MERGED_CRONTAB"; then
+    if ! grep -Fxq "$new_cron" "$EXISTING_CRONTAB"; then
         # If it doesn't exist, append it to the merged crontab
         echo "$new_cron" >> "$MERGED_CRONTAB"
         echo -e "${CHECK_MARK} ${GREEN}Added new crontab entry: ${NC}$new_cron"
@@ -109,7 +108,7 @@ while IFS= read -r new_cron; do
 done < "$CRONTAB_FILE"
 
 # Apply the merged crontab
-crontab "$MERGED_CRONTAB"
+cat "$MERGED_CRONTAB" "$EXISTING_CRONTAB" | awk '!seen[$0]++' | crontab -
 rm "$EXISTING_CRONTAB" "$MERGED_CRONTAB"
 
 echo -e "${CHECK_MARK} ${GREEN}Crontab merged and applied successfully, preserving comments and avoiding duplicates.${NC}"
