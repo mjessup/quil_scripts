@@ -59,17 +59,6 @@ else
     echo -e "${CHECK_MARK} ${GREEN}.storj_env file already exists. Skipping creation.${NC}"
 fi
 
-# Set up crontab from the repo
-CRONTAB_FILE="$SCRIPTS_DIR/crontab.txt"
-if [ -f "$CRONTAB_FILE" ]; then
-    echo -e "${HOURGLASS} ${YELLOW}Applying crontab from crontab.txt...${NC}"
-    crontab "$CRONTAB_FILE"
-    echo -e "${CHECK_MARK} ${GREEN}Crontab applied successfully.${NC}"
-else
-    echo -e "${ERROR_MARK} ${RED}Error: crontab.txt file not found!${NC}"
-    exit 1
-fi
-
 # Install CPU performance script from external repo
 CPU_PERFORMANCE_SETUP_URL="https://raw.githubusercontent.com/mjessup/CPU_Performance/main/setup.sh"
 echo -e "${HOURGLASS} ${YELLOW}Setting up CPU performance script from the external repository...${NC}"
@@ -78,5 +67,37 @@ if curl -s "$CPU_PERFORMANCE_SETUP_URL" | bash; then
 else
     echo -e "${ERROR_MARK} ${RED}Failed to set up CPU performance script.${NC}"
 fi
+
+# Crontab setup (this will run last to prevent conflicts)
+CRONTAB_FILE="$SCRIPTS_DIR/crontab.txt"
+EXISTING_CRONTAB=$(mktemp)
+
+echo -e "${HOURGLASS} ${YELLOW}Checking existing crontab and merging changes...${NC}"
+
+# Capture the existing crontab into a temporary file
+crontab -l > "$EXISTING_CRONTAB" 2>/dev/null
+
+# Loop through each line in the new crontab.txt file
+while IFS= read -r new_cron; do
+    # Skip empty lines or comments
+    if [[ -z "$new_cron" || "$new_cron" =~ ^# ]]; then
+        continue
+    fi
+
+    # Check if this new cron entry already exists in the current crontab
+    if ! grep -Fxq "$new_cron" "$EXISTING_CRONTAB"; then
+        # If it doesn't exist, append it to the existing crontab
+        echo "$new_cron" >> "$EXISTING_CRONTAB"
+        echo -e "${CHECK_MARK} ${GREEN}Added new crontab entry: ${NC}$new_cron"
+    else
+        echo -e "${CHECK_MARK} ${GREEN}Crontab entry already exists: ${NC}$new_cron"
+    fi
+done < "$CRONTAB_FILE"
+
+# Apply the merged crontab
+crontab "$EXISTING_CRONTAB"
+rm "$EXISTING_CRONTAB"
+
+echo -e "${CHECK_MARK} ${GREEN}Crontab merged and applied successfully.${NC}"
 
 echo -e "${CHECK_MARK} ${GREEN}Quil Scripts setup complete! All scripts and crontab are updated.${NC}"
