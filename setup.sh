@@ -77,38 +77,33 @@ echo -e "${HOURGLASS} ${YELLOW}Checking existing crontab and merging changes...$
 # Capture the existing crontab into a temporary file
 crontab -l > "$EXISTING_CRONTAB" 2>/dev/null
 
-# Remove any duplicates of the CPU performance cron job in the existing crontab
-awk '!seen[$0]++' "$EXISTING_CRONTAB" > "$EXISTING_CRONTAB.tmp" && mv "$EXISTING_CRONTAB.tmp" "$EXISTING_CRONTAB"
-
-# Merge the contents of crontab.txt with the existing crontab, preserving comments and empty lines
+# Merge the crontab while preserving comments and removing duplicates
 MERGED_CRONTAB=$(mktemp)
 
-# Start with an empty file and merge properly
-> "$MERGED_CRONTAB"
-
-# Loop through each line in the new crontab.txt file and append missing lines
-while IFS= read -r new_cron; do
-    # Skip empty lines or comments
-    if [[ -z "$new_cron" || "$new_cron" =~ ^# ]]; then
-        # Add comments or empty lines to the merged crontab if they aren't duplicates
-        if ! grep -Fxq "$new_cron" "$EXISTING_CRONTAB"; then
-            echo "$new_cron" >> "$MERGED_CRONTAB"
-        fi
+# Copy the contents of crontab.txt, ensuring no duplicates and maintaining order
+while IFS= read -r new_line; do
+    # If the line is a comment or an empty line, preserve it
+    if [[ -z "$new_line" || "$new_line" =~ ^# ]]; then
+        echo "$new_line" >> "$MERGED_CRONTAB"
         continue
     fi
 
-    # Check if this new cron entry already exists in the current crontab
-    if ! grep -Fxq "$new_cron" "$EXISTING_CRONTAB"; then
-        # If it doesn't exist, append it to the merged crontab
-        echo "$new_cron" >> "$MERGED_CRONTAB"
-        echo -e "${CHECK_MARK} ${GREEN}Added new crontab entry: ${NC}$new_cron"
-    else
-        echo -e "${CHECK_MARK} ${GREEN}Crontab entry already exists: ${NC}$new_cron"
+    # Check if the line is already in the existing crontab to avoid duplicates
+    if ! grep -Fxq "$new_line" "$EXISTING_CRONTAB"; then
+        echo "$new_line" >> "$MERGED_CRONTAB"
     fi
 done < "$CRONTAB_FILE"
 
-# Apply the merged crontab
-cat "$MERGED_CRONTAB" "$EXISTING_CRONTAB" | awk '!seen[$0]++' | crontab -
+# Now append any remaining cron jobs from the existing crontab that aren't duplicates
+while IFS= read -r existing_line; do
+    # Skip lines that already exist in the merged crontab to avoid duplication
+    if ! grep -Fxq "$existing_line" "$MERGED_CRONTAB"; then
+        echo "$existing_line" >> "$MERGED_CRONTAB"
+    fi
+done < "$EXISTING_CRONTAB"
+
+# Apply the final merged crontab
+crontab "$MERGED_CRONTAB"
 rm "$EXISTING_CRONTAB" "$MERGED_CRONTAB"
 
 echo -e "${CHECK_MARK} ${GREEN}Crontab merged and applied successfully, preserving comments and avoiding duplicates.${NC}"
