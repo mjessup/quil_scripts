@@ -1,0 +1,8 @@
+# Ignore the environment file containing sensitive data
+.storj_env
+
+# Ignore any local logs or temporary files
+logs/
+log/
+*.log
+*.tmp
