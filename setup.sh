@@ -77,6 +77,10 @@ echo -e "${HOURGLASS} ${YELLOW}Checking existing crontab and merging changes...$
 # Capture the existing crontab into a temporary file
 crontab -l > "$EXISTING_CRONTAB" 2>/dev/null
 
+# Prevent duplicates by ensuring `set_cpu_performance.sh` is not added twice
+# Remove the duplicate entry (if it exists more than once)
+awk '!seen[$0]++' "$EXISTING_CRONTAB" > "$EXISTING_CRONTAB.tmp" && mv "$EXISTING_CRONTAB.tmp" "$EXISTING_CRONTAB"
+
 # Merge the contents of crontab.txt with the existing crontab, preserving comments and empty lines
 MERGED_CRONTAB=$(mktemp)
 
@@ -108,6 +112,6 @@ done < "$CRONTAB_FILE"
 crontab "$MERGED_CRONTAB"
 rm "$EXISTING_CRONTAB" "$MERGED_CRONTAB"
 
-echo -e "${CHECK_MARK} ${GREEN}Crontab merged and applied successfully, preserving comments.${NC}"
+echo -e "${CHECK_MARK} ${GREEN}Crontab merged and applied successfully, preserving comments and avoiding duplicates.${NC}"
 
 echo -e "${CHECK_MARK} ${GREEN}Quil Scripts setup complete! All scripts and crontab are updated.${NC}"
