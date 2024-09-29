@@ -4,8 +4,8 @@ TZ=America/New_York
 # Every minute, run the HetrixTools agent script and log the output
 * * * * * bash /etc/hetrixtools/hetrixtools_agent.sh >> /etc/hetrixtools/hetrixtools_cron.log 2>&1
 
-# At 15:00 every day, run the Q_backup script and log the output
-0 15 * * * /root/scripts/Q_backup.sh >> /var/log/Q_backup.log 2>&1
+# At 00:00 (midnight) and 12:00 (noon) every day, run the Q_backup script and log the output
+0 0,12 * * * /root/scripts/Q_backup.sh >> /var/log/Q_backup.log 2>&1
 
 # Run the set_cpu_performance script at reboot
 @reboot /root/scripts/set_cpu_performance.sh
