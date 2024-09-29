@@ -12,3 +12,6 @@ TZ=America/New_York
 
 # Every 6 hours, run the set_cpu_performance script
 0 */6 * * * /root/scripts/set_cpu_performance.sh
+
+# ===========================
+# End of script crontab jobs
