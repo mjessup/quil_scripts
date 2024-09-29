@@ -1,9 +1,6 @@
 # Set the timezone
 TZ=America/New_York
 
-# Every minute, run the HetrixTools agent script and log the output
-* * * * * bash /etc/hetrixtools/hetrixtools_agent.sh >> /etc/hetrixtools/hetrixtools_cron.log 2>&1
-
 # At 00:00 (midnight) and 12:00 (noon) every day, run the Q_backup script and log the output
 0 0,12 * * * /root/scripts/Q_backup.sh >> /var/log/Q_backup.log 2>&1
 
@@ -12,6 +9,11 @@ TZ=America/New_York
 
 # Every 6 hours, run the set_cpu_performance script
 0 */6 * * * /root/scripts/set_cpu_performance.sh
+
+# Every 20 seconds, run the HetrixTools agent script and log the output
+* * * * * bash /etc/hetrixtools/hetrixtools_agent.sh >> /etc/hetrixtools/hetrixtools_cron.log 2>&1
+* * * * * sleep 20; bash /etc/hetrixtools/hetrixtools_agent.sh >> /etc/hetrixtools/hetrixtools_cron.log 2>&1
+* * * * * sleep 40; bash /etc/hetrixtools/hetrixtools_agent.sh >> /etc/hetrixtools/hetrixtools_cron.log 2>&1
 
 # ===========================
 # End of script crontab jobs
